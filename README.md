@@ -1,4 +1,4 @@
-# ImageProcessingEngine
+# GenericEngine
 
 このリポジトリでは画像処理エンジンの開発を行います。
 超解像や画像自動生成も行うために、自作AIもこのエンジンに組み込んでいます。
