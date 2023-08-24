@@ -3,19 +3,24 @@
 #include <typeinfo>
 #include <iostream>
 #include <cassert>
+#include <functional>
 
 #include "typeinfo.h"
 
 
 namespace Aoba::Core::Math
 {
+	class TensorValiable;
+
 	class Tensor
 	{
+		friend class TensorValiable;
 	public:
-
+		//可変長コンストラクタ
 		template <typename ...Args>
 		Tensor(Args ... args)
 			: mTensorDataSize(0)
+			, mInstanceID(InstanceID)
 		{
 			mTensorDimension = sizeof...(args);
 			if (mTensorDimension == 0)
@@ -35,20 +40,29 @@ namespace Aoba::Core::Math
 			}
 
 			mTensorData.resize(size);
+			mDeltaTensorData.resize(size);
 
 			//無理やり初期化するために強制的にconstを外している。
 			u32* p2mTensorDataSize = const_cast<u32*>(&mTensorDataSize);
 			*p2mTensorDataSize = size;
-		}
 
+
+			InstanceID++;
+		}
 		~Tensor() = default;
 
-		Tensor(Tensor&&);
-		Tensor& operator=(Tensor&&);
+		//コピーコンストラクタと代入演算子
+		Tensor(const Tensor&);
+		Tensor& operator=(const Tensor&) = default;
+
+		//ムーブコンストラクタと代入演算子
+		Tensor(Tensor&&) = default;
+		Tensor& operator=(Tensor&&) = default;
 
 		f32 operator[](u32 index) const;
 		f32& operator[](u32 index);
 
+		//OK
 		template <typename ...Args>
 		void reshape(Args ... args)
 		{
@@ -146,8 +160,10 @@ namespace Aoba::Core::Math
 			}
 		}
 
-		u32 getTensorSize() const;
+		//OK
+		u32 getTensorDataSize() const;
 
+		//OK
 		template <typename ...Args>
 		f32& operator()(Args ... args)
 		{
@@ -179,6 +195,7 @@ namespace Aoba::Core::Math
 			return mTensorData[index];
 		}
 
+		//OK
 		template <typename ...Args>
 		f32 operator()(Args ... args) const
 		{
@@ -210,6 +227,36 @@ namespace Aoba::Core::Math
 			return mTensorData[index];
 		}
 
+		f32& getDeltaTensorData(u32 index)
+		{
+#if _DEBUG
+			assert(index < mTensorDataSize);
+#endif
+			return mDeltaTensorData[index];
+		}
+
+		f32 getDeltaTensorData(u32 index) const 
+		{
+#if _DEBUG
+			assert(index < mTensorDataSize);
+#endif
+			return mDeltaTensorData[index];
+		}
+
+		//順伝搬用
+		std::function<void (Tensor&)> mForwardFunction;
+		std::vector<Tensor*> mRootTensor;
+		void forward();
+
+		//逆伝搬用
+		std::vector<std::vector<Tensor*> > mFollowingTensorTbl;
+		std::vector<std::function<void(Tensor&, std::vector<Tensor*>)> > mBackwardFunctionTbl;
+		void backward();
+
+
+
+		static bool isSameShape(const Tensor& tensorL, const Tensor& tensorR);
+
 	private:
 		bool mWhetherToLearn = true;
 
@@ -222,8 +269,16 @@ namespace Aoba::Core::Math
 		const u32 mTensorDataSize;
 		//テンソルのデータ（このサイズも不変 =====> resizeは一回しか呼ばないこと!!!）
 		std::vector<f32> mTensorData;
+		std::vector<f32> mDeltaTensorData;
+
+
+		const u32 mInstanceID;
+		inline static u32 InstanceID = 0;
+
+
 
 		//コンストラクタの可変長引数を処理するための関数
+		//各軸方向のサイズもここで格納する。
 		template <typename Head, typename ... Tail>
 		void constructorArgsDevider(u32 id, Head&& head, Tail&& ... tail)
 		{
@@ -298,6 +353,104 @@ namespace Aoba::Core::Math
 			genericArgsDevider(id + 1, tensorEachAxisSizeTbl, tail...);
 		}
 		void genericArgsDevider(u32 id, u32 tensorEachAxisSizeTbl[]) {}
+
+
+
+	};
+
+	class TensorValiable
+	{
+	public:
+		template <typename ... Args>
+		TensorValiable(Args ... args)
+			: mTensorPtr(new Tensor(args...))
+		{
+
+		}
+
+		TensorValiable(const TensorValiable&);
+		TensorValiable(TensorValiable&&);
+
+		TensorValiable operator+(TensorValiable& tensorValiableR)
+		{
+			if (!isSameShape(*(this), tensorValiableR))
+			{
+				assert(0);
+			}
+
+			TensorValiable newTensorValiable = tensorValiableR;
+			
+			//順伝搬用の情報の保存
+			newTensorValiable.mTensorPtr->mRootTensor.push_back(this->mTensorPtr);
+			newTensorValiable.mTensorPtr->mRootTensor.push_back(tensorValiableR.mTensorPtr);
+			newTensorValiable.mTensorPtr->mForwardFunction = [](Tensor& tensor)
+			{
+				const u32 tensorSize = tensor.getTensorDataSize();
+				for (u32 i = 0; i < tensorSize; i++)
+				{
+					tensor[i] = (*tensor.mRootTensor[0])[i] + (*tensor.mRootTensor[1])[i];
+				}
+			};
+
+			newTensorValiable.mTensorPtr->forward();
+
+
+			//逆伝搬用の情報の保存
+			//左辺用
+			{
+				std::vector<Tensor*> tmpTensorTbl;
+				tmpTensorTbl.push_back(newTensorValiable.mTensorPtr);
+				tmpTensorTbl.push_back(tensorValiableR.mTensorPtr);
+				this->mTensorPtr->mFollowingTensorTbl.push_back(tmpTensorTbl);
+				this->mTensorPtr->mBackwardFunctionTbl.push_back(
+					[](Tensor& tensor, std::vector<Tensor*> tensorTbl)
+					{
+						for (u32 i = 0; i < tensor.getTensorDataSize(); i++)
+						{
+							tensor.getDeltaTensorData(i) += (*tensorTbl[0]).getDeltaTensorData(i);
+						}
+					});
+			}
+			//右辺用
+			{
+				std::vector<Tensor*> tmpTensorTbl;
+				tmpTensorTbl.push_back(newTensorValiable.mTensorPtr);
+				tmpTensorTbl.push_back(this->mTensorPtr);
+				tensorValiableR.mTensorPtr->mFollowingTensorTbl.push_back(tmpTensorTbl);
+				tensorValiableR.mTensorPtr->mBackwardFunctionTbl.push_back(
+					[](Tensor& tensor, std::vector<Tensor*> tensorTbl)
+					{
+						for (u32 i = 0; i < tensor.getTensorDataSize(); i++)
+						{
+							tensor.getDeltaTensorData(i) += (*tensorTbl[0]).getDeltaTensorData(i);
+						}
+					});
+			}
+
+			return newTensorValiable;
+		}
+
+		void forward() { mTensorPtr->forward(); }
+		void backward() { mTensorPtr->backward(); }
+
+		inline static bool isSameShape(const TensorValiable& tensorL, const TensorValiable& tensorR)
+		{
+			return Tensor::isSameShape(*tensorL.mTensorPtr, *tensorR.mTensorPtr);
+		}
+
+		u32 getTensorDataSize() const { return mTensorPtr->getTensorDataSize(); }
+
+		f32 operator[](u32 index) const { return (*mTensorPtr)[index]; }
+		f32& operator[](u32 index){ return (*mTensorPtr)[index]; }
+
+#if _DEBUG
+		Tensor* getTensor()
+		{
+			return mTensorPtr;
+		}
+#endif
+	private:
+		Tensor* mTensorPtr;
 	};
 
 
