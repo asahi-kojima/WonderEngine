@@ -10,11 +10,11 @@
 
 namespace Aoba::Core::Math
 {
-	class TensorValiable;
+	class TensorVariable;
 
 	class Tensor
 	{
-		friend class TensorValiable;
+		friend class TensorVariable;
 	public:
 		//可変長コンストラクタ
 		template <typename ...Args>
@@ -358,100 +358,6 @@ namespace Aoba::Core::Math
 
 	};
 
-	class TensorValiable
-	{
-	public:
-		template <typename ... Args>
-		TensorValiable(Args ... args)
-			: mTensorPtr(new Tensor(args...))
-		{
-
-		}
-
-		TensorValiable(const TensorValiable&);
-		TensorValiable(TensorValiable&&);
-
-		TensorValiable operator+(TensorValiable& tensorValiableR)
-		{
-			if (!isSameShape(*(this), tensorValiableR))
-			{
-				assert(0);
-			}
-
-			TensorValiable newTensorValiable = tensorValiableR;
-			
-			//順伝搬用の情報の保存
-			newTensorValiable.mTensorPtr->mRootTensor.push_back(this->mTensorPtr);
-			newTensorValiable.mTensorPtr->mRootTensor.push_back(tensorValiableR.mTensorPtr);
-			newTensorValiable.mTensorPtr->mForwardFunction = [](Tensor& tensor)
-			{
-				const u32 tensorSize = tensor.getTensorDataSize();
-				for (u32 i = 0; i < tensorSize; i++)
-				{
-					tensor[i] = (*tensor.mRootTensor[0])[i] + (*tensor.mRootTensor[1])[i];
-				}
-			};
-
-			newTensorValiable.mTensorPtr->forward();
-
-
-			//逆伝搬用の情報の保存
-			//左辺用
-			{
-				std::vector<Tensor*> tmpTensorTbl;
-				tmpTensorTbl.push_back(newTensorValiable.mTensorPtr);
-				tmpTensorTbl.push_back(tensorValiableR.mTensorPtr);
-				this->mTensorPtr->mFollowingTensorTbl.push_back(tmpTensorTbl);
-				this->mTensorPtr->mBackwardFunctionTbl.push_back(
-					[](Tensor& tensor, std::vector<Tensor*> tensorTbl)
-					{
-						for (u32 i = 0; i < tensor.getTensorDataSize(); i++)
-						{
-							tensor.getDeltaTensorData(i) += (*tensorTbl[0]).getDeltaTensorData(i);
-						}
-					});
-			}
-			//右辺用
-			{
-				std::vector<Tensor*> tmpTensorTbl;
-				tmpTensorTbl.push_back(newTensorValiable.mTensorPtr);
-				tmpTensorTbl.push_back(this->mTensorPtr);
-				tensorValiableR.mTensorPtr->mFollowingTensorTbl.push_back(tmpTensorTbl);
-				tensorValiableR.mTensorPtr->mBackwardFunctionTbl.push_back(
-					[](Tensor& tensor, std::vector<Tensor*> tensorTbl)
-					{
-						for (u32 i = 0; i < tensor.getTensorDataSize(); i++)
-						{
-							tensor.getDeltaTensorData(i) += (*tensorTbl[0]).getDeltaTensorData(i);
-						}
-					});
-			}
-
-			return newTensorValiable;
-		}
-
-		void forward() { mTensorPtr->forward(); }
-		void backward() { mTensorPtr->backward(); }
-
-		inline static bool isSameShape(const TensorValiable& tensorL, const TensorValiable& tensorR)
-		{
-			return Tensor::isSameShape(*tensorL.mTensorPtr, *tensorR.mTensorPtr);
-		}
-
-		u32 getTensorDataSize() const { return mTensorPtr->getTensorDataSize(); }
-
-		f32 operator[](u32 index) const { return (*mTensorPtr)[index]; }
-		f32& operator[](u32 index){ return (*mTensorPtr)[index]; }
-
-#if _DEBUG
-		Tensor* getTensor()
-		{
-			return mTensorPtr;
-		}
-#endif
-	private:
-		Tensor* mTensorPtr;
-	};
-
+	
 
 }

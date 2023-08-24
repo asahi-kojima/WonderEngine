@@ -1,5 +1,6 @@
 ﻿#include <iostream>
 #include "Math/Tensor.h"
+#include "Math/TensorVariable.h"
 
 int main()
 {
@@ -21,9 +22,9 @@ int main()
 	//Tensor newTensor = tensor0 + tensor1;
 	//Tensor newTensor1 = newTensor + tensor0;
 
-	TensorValiable v0(2,4,8);
-	TensorValiable v1(2,4,8);
-	TensorValiable v2(2,4,8);
+	TensorVariable v0(2,4,8);
+	TensorVariable v1(2,4,8);
+	TensorVariable v2(2,4,8);
 	for (u32 i = 0; i < v0.getTensorDataSize(); i++)
 	{
 		v0[i] = i;
@@ -35,8 +36,8 @@ int main()
 
 	}
 
-	TensorValiable V0 = v0 + v1;
-	TensorValiable V1 = v2 + v1;
+	TensorVariable V0 = v0 + v1;
+	TensorVariable V1 = v2 + v1;
 	for (u32 i = 0; i < v0.getTensorDataSize(); i++)
 	{
 		V0.getTensor()->getDeltaTensorData(i) = i;

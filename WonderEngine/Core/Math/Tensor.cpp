@@ -109,17 +109,4 @@ namespace Aoba::Core::Math
 		return true;
 	}
 
-
-
-
-	TensorValiable::TensorValiable(const TensorValiable& tensorValiable)
-	{
-		mTensorPtr = new Tensor(*(tensorValiable.mTensorPtr));
-	}
-
-	TensorValiable::TensorValiable(TensorValiable&& tensor)
-	{
-		mTensorPtr = tensor.mTensorPtr;
-		tensor.mTensorPtr = nullptr;
-	}
 }
