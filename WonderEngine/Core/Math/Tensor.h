@@ -20,7 +20,7 @@ namespace Aoba::Core::Math
 		template <typename ...Args>
 		Tensor(Args ... args)
 			: mTensorDataSize(0)
-			, mInstanceID(InstanceID)
+			, mWhetherToLearn(false)
 		{
 			mTensorDimension = sizeof...(args);
 			if (mTensorDimension == 0)
@@ -45,9 +45,6 @@ namespace Aoba::Core::Math
 			//無理やり初期化するために強制的にconstを外している。
 			u32* p2mTensorDataSize = const_cast<u32*>(&mTensorDataSize);
 			*p2mTensorDataSize = size;
-
-
-			InstanceID++;
 		}
 		~Tensor() = default;
 
@@ -56,13 +53,82 @@ namespace Aoba::Core::Math
 		Tensor& operator=(const Tensor&) = default;
 
 		//ムーブコンストラクタと代入演算子
-		Tensor(Tensor&&) = default;
+		Tensor(Tensor&&);
 		Tensor& operator=(Tensor&&) = default;
 
 		f32 operator[](u32 index) const;
 		f32& operator[](u32 index);
 
-		//OK
+
+		u32 getTensorDataSize() const;
+
+		//テンソルの値へのアクセス
+		template <typename ...Args>
+		f32& operator()(Args ... args)
+		{
+			const u32 argsSize = sizeof...(args);
+			if (argsSize != mTensorDimension)
+			{
+				std::cout << "Error : argument nums(=" << argsSize << ") are contradict with current tensor dimension(=" << mTensorDimension << ")." << std::endl;
+				assert(0);
+			}
+
+			u32 eachAxisIndexTbl[argsSize];
+			genericArgsDevider(0, eachAxisIndexTbl, args...);
+
+			u32 prod = 1;
+			u32 index = 0;
+
+			for (s32 id = argsSize - 1; id >= 0; id--)
+			{
+#if _DEBUG
+				assert(eachAxisIndexTbl[id] < mEachAxisSize[id]);
+#endif
+				index += eachAxisIndexTbl[id] * prod;
+				prod *= mEachAxisSize[id];
+			}
+
+#if _DEBUG
+			assert(index < mTensorDataSize);
+#endif
+			return mTensorData[index];
+		}
+		template <typename ...Args>
+		f32 operator()(Args ... args) const
+		{
+			const u32 argsSize = sizeof...(args);
+			if (argsSize != mTensorDimension)
+			{
+				std::cout << "Error : argument nums(=" << argsSize << ") are contradict with current tensor dimension(=" << std::endl;
+				assert(0);
+			}
+
+			u32 eachAxisIndexTbl[argsSize];
+			genericArgsDevider(0, eachAxisIndexTbl, args...);
+
+			u32 prod = 1;
+			u32 index = 0;
+
+			for (s32 id = argsSize - 1; id >= 0; id--)
+			{
+#if _DEBUG
+				assert(eachAxisIndexTbl[id] < mEachAxisSize[id]);
+#endif
+				index += eachAxisIndexTbl[id] * prod;
+				prod *= mEachAxisSize[id];
+			}
+
+#if _DEBUG
+			assert(index < mTensorDataSize);
+#endif
+			return mTensorData[index];
+		}
+
+		//テンソルの微分値へのアクセス。　デバッグ用の関数な気がするから、たぶん後で消す
+		f32& getDeltaTensorData(u32 index);
+		f32 getDeltaTensorData(u32 index) const;
+
+
 		template <typename ...Args>
 		void reshape(Args ... args)
 		{
@@ -139,126 +205,15 @@ namespace Aoba::Core::Math
 			}
 		}
 
-		void transpose(u32 axis0, u32 axis1)
-		{
-			if (mTensorDimension == 1)
-			{
-				std::cout << "current tensor is 1 dimension!" << std::endl;
-				assert(0);
-			}
+		void transpose(u32 axis0, u32 axis1);
 
-			if (!(axis0 < mTensorDimension && axis1 < mTensorDimension))
-			{
-				std::cout << "designated axis (" << axis0 << " or " << axis1 << ") is over!" << std::endl;
-				assert(0);
-			}
-
-			if (axis0 == axis1)
-			{
-				std::cout << "designated 2 axis is same." << std::endl;
-				return;
-			}
-		}
-
-		//OK
-		u32 getTensorDataSize() const;
-
-		//OK
-		template <typename ...Args>
-		f32& operator()(Args ... args)
-		{
-			const u32 argsSize = sizeof...(args);
-			if (argsSize != mTensorDimension)
-			{
-				std::cout << "Error : argument nums(=" << argsSize << ") are contradict with current tensor dimension(=" << mTensorDimension << ")." << std::endl;
-				assert(0);
-			}
-
-			u32 eachAxisIndexTbl[argsSize];
-			genericArgsDevider(0, eachAxisIndexTbl, args...);
-
-			u32 prod = 1;
-			u32 index = 0;
-
-			for (s32 id = argsSize - 1; id >= 0; id--)
-			{
-#if _DEBUG
-				assert(eachAxisIndexTbl[id] < mEachAxisSize[id]);
-#endif
-				index += eachAxisIndexTbl[id] * prod;
-				prod *= mEachAxisSize[id];
-			}
-
-#if _DEBUG
-			assert(index < mTensorDataSize);
-#endif
-			return mTensorData[index];
-		}
-
-		//OK
-		template <typename ...Args>
-		f32 operator()(Args ... args) const
-		{
-			const u32 argsSize = sizeof...(args);
-			if (argsSize != mTensorDimension)
-			{
-				std::cout << "Error : argument nums(=" << argsSize << ") are contradict with current tensor dimension(=" << std::endl;
-				assert(0);
-			}
-
-			u32 eachAxisIndexTbl[argsSize];
-			genericArgsDevider(0, eachAxisIndexTbl, args...);
-
-			u32 prod = 1;
-			u32 index = 0;
-
-			for (s32 id = argsSize - 1; id >= 0; id--)
-			{
-#if _DEBUG
-				assert(eachAxisIndexTbl[id] < mEachAxisSize[id]);
-#endif
-				index += eachAxisIndexTbl[id] * prod;
-				prod *= mEachAxisSize[id];
-			}
-
-#if _DEBUG
-			assert(index < mTensorDataSize);
-#endif
-			return mTensorData[index];
-		}
-
-		f32& getDeltaTensorData(u32 index)
-		{
-#if _DEBUG
-			assert(index < mTensorDataSize);
-#endif
-			return mDeltaTensorData[index];
-		}
-
-		f32 getDeltaTensorData(u32 index) const 
-		{
-#if _DEBUG
-			assert(index < mTensorDataSize);
-#endif
-			return mDeltaTensorData[index];
-		}
-
-		//順伝搬用
-		std::function<void (Tensor&)> mForwardFunction;
-		std::vector<Tensor*> mRootTensor;
-		void forward();
-
-		//逆伝搬用
-		std::vector<std::vector<Tensor*> > mFollowingTensorTbl;
-		std::vector<std::function<void(Tensor&, std::vector<Tensor*>)> > mBackwardFunctionTbl;
-		void backward();
-
+		static Tensor createTensorLike(const Tensor&);
 
 
 		static bool isSameShape(const Tensor& tensorL, const Tensor& tensorR);
 
 	private:
-		bool mWhetherToLearn = true;
+		bool mWhetherToLearn;
 
 		//現在のテンソルの次元
 		u32 mTensorDimension;
@@ -272,9 +227,16 @@ namespace Aoba::Core::Math
 		std::vector<f32> mDeltaTensorData;
 
 
-		const u32 mInstanceID;
-		inline static u32 InstanceID = 0;
 
+		//順伝搬用
+		std::function<void (Tensor&)> mForwardFunction;
+		std::vector<Tensor*> mRootTensor;
+		void forward();
+
+		//逆伝搬用
+		std::vector<std::vector<Tensor*> > mFollowingTensorTbl;
+		std::vector<std::function<void(Tensor&, std::vector<Tensor*>)> > mBackwardFunctionTbl;
+		void backward();
 
 
 		//コンストラクタの可変長引数を処理するための関数
