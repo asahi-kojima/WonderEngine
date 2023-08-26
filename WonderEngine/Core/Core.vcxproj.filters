@@ -18,21 +18,21 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Math\Tensor.h">
+    <ClInclude Include="Math\TensorCore.h">
       <Filter>ソース ファイル\Math</Filter>
     </ClInclude>
     <ClInclude Include="typeinfo.h">
       <Filter>ソース ファイル</Filter>
     </ClInclude>
-    <ClInclude Include="Math\TensorVariable.h">
+    <ClInclude Include="Math\Tensor.h">
       <Filter>ソース ファイル\Math</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Math\Tensor.cpp">
+    <ClCompile Include="Math\TensorCore.cpp">
       <Filter>ソース ファイル\Math</Filter>
     </ClCompile>
-    <ClCompile Include="Math\TensorVariable.cpp">
+    <ClCompile Include="Math\Tensor.cpp">
       <Filter>ソース ファイル\Math</Filter>
     </ClCompile>
   </ItemGroup>

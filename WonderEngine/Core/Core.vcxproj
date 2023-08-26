@@ -147,13 +147,13 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="Math\TensorCore.h" />
     <ClInclude Include="Math\Tensor.h" />
-    <ClInclude Include="Math\TensorVariable.h" />
     <ClInclude Include="typeinfo.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Math\TensorCore.cpp" />
     <ClCompile Include="Math\Tensor.cpp" />
-    <ClCompile Include="Math\TensorVariable.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
