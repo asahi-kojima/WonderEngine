@@ -37,11 +37,11 @@ int main()
 
 	Tensor V0 = v0 + v1;
 	Tensor V1 = v2 + v1;
-	//for (u32 i = 0; i < v0.getTensorDataSize(); i++)
-	//{
-	//	V0.getTensor()->getDeltaTensorData(i) = i;
-	//	V1.getTensor()->getDeltaTensorData(i) = 2 * i;
-	//}
+	for (u32 i = 0; i < v0.getTensorDataSize(); i++)
+	{
+		V0.getDeltaTensorData(i) = i;
+		V1.getDeltaTensorData(i) = 2 * i;
+	}
 	v1.backward();
 	v0.backward();
 	v2.backward();

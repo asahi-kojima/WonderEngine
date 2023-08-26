@@ -41,6 +41,11 @@ namespace Aoba::Core::Math
 		{
 			return mTensorPtr;
 		}
+
+		f32& getDeltaTensorData(u32 index)
+		{
+			return mTensorPtr->mDeltaTensorData[index];
+		}
 #endif
 
 

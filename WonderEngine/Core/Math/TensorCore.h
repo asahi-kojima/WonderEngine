@@ -16,7 +16,7 @@ namespace Aoba::Core::Math
 	{
 		friend class Tensor;
 
-	public://後々ここはprivateに変更する。
+	private://後々ここはprivateに変更する。
 		//可変長コンストラクタ
 		template <typename ...Args>
 		TensorCore(Args ... args)
