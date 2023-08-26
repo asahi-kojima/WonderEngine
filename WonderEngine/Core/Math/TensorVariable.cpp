@@ -5,6 +5,11 @@ namespace Aoba::Core::Math
 	/////////////////////////////////////////////////////////////
 	// コンストラクタ
 	/////////////////////////////////////////////////////////////
+	TensorVariable::TensorVariable()
+		:mInstanceID(InstanceID++)
+	{
+		mTensorPtr = nullptr;
+	}
 
 	TensorVariable::TensorVariable(const TensorVariable& tensorVariable)
 		:mInstanceID(InstanceID++)
@@ -32,7 +37,8 @@ namespace Aoba::Core::Math
 
 	TensorVariable TensorVariable::makeTensorVariableLike(const TensorVariable& tensorVariable)
 	{
-		TensorVariable newTensorVariable = Tensor::createTensorLike(*(tensorVariable.mTensorPtr));
+		TensorVariable newTensorVariable{};
+		newTensorVariable.mTensorPtr = Tensor::createTensorPtrLike(*(tensorVariable.mTensorPtr));
 		return newTensorVariable;
 	}
 
@@ -50,8 +56,8 @@ namespace Aoba::Core::Math
 		}
 
 		//ここは修正すべきかも
-		//TensorVariable newTensorVariable = createLike(tensorVariableR);
-		TensorVariable newTensorVariable = tensorVariableR;
+		TensorVariable newTensorVariable = makeTensorVariableLike(tensorVariableR);
+		//TensorVariable newTensorVariable = tensorVariableR;
 
 		//順伝搬用の情報の保存
 		newTensorVariable.mTensorPtr->mRootTensor.push_back(this->mTensorPtr);

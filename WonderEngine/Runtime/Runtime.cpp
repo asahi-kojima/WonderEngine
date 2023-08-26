@@ -44,6 +44,8 @@ int main()
 		V1.getTensor()->getDeltaTensorData(i) = 2 * i;
 	}
 	v1.backward();
+	v0.backward();
+	v2.backward();
 
 	int x = 1 + 1;
 	//tensor[0];

@@ -15,6 +15,7 @@ namespace Aoba::Core::Math
 		{
 
 		}
+		TensorVariable();
 		TensorVariable(const TensorVariable&);
 		TensorVariable(TensorVariable&&);
 		~TensorVariable();

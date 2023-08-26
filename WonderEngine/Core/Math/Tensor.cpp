@@ -4,6 +4,11 @@
 
 namespace Aoba::Core::Math
 {
+	Tensor::Tensor()
+		:mTensorDataSize(0)
+	{
+	}
+
 	Tensor::Tensor(const Tensor& tensor)
 		: mTensorDataSize(tensor.mTensorDataSize)
 	{
@@ -32,9 +37,11 @@ namespace Aoba::Core::Math
 
 	}
 
+	//未実装
 	Tensor::Tensor(Tensor&&)
 		: mTensorDataSize(0)
 	{
+		//未実装
 	}
 
 
@@ -118,28 +125,30 @@ namespace Aoba::Core::Math
 	}
 
 	//あくまで同じ形状を作るだけで、計算グラフなどは独立
-	Tensor Tensor::createTensorLike(const Tensor& tensor)
+	Tensor* Tensor::createTensorPtrLike(const Tensor& tensor)
 	{
-		Tensor newTensor;
-		newTensor.mTensorDimension = tensor.mTensorDimension;
-		if (newTensor.mTensorDimension == 0)
+		Tensor* newTensor = new Tensor();
+
+		//newTensor->mTensorDataSize = tensor.mTensorDataSize;
+		u32* p = const_cast<u32*>(&(newTensor->mTensorDataSize));
+		*p = tensor.mTensorDataSize;
+
+		newTensor->mTensorDimension = tensor.mTensorDimension;
+		if (newTensor->mTensorDimension == 0)
 		{
 			assert(0);
 		}
 
 		//初期状態の各次元のサイズを決定する。
-		newTensor.mEachAxisSize.resize(newTensor.mTensorDimension);
-		for (u32 i = 0; i < newTensor.mTensorDimension; i++)
+		newTensor->mEachAxisSize.resize(tensor.mTensorDimension);
+		for (u32 i = 0; i < tensor.mTensorDimension; i++)
 		{
-			newTensor.mEachAxisSize[i] = tensor.mEachAxisSize[i];
+			newTensor->mEachAxisSize[i] = tensor.mEachAxisSize[i];
 		}
 
 		//データサイズを定める。
-		newTensor.mTensorData.resize(newTensor.mTensorDataSize);
-		newTensor.mDeltaTensorData.resize(newTensor.mTensorDataSize);
-
-		u32* p2mTensorDataSize = const_cast<u32*>(&(newTensor.mTensorDataSize));
-		*p2mTensorDataSize = tensor.mTensorDataSize;
+		newTensor->mTensorData.resize(tensor.mTensorDataSize);
+		newTensor->mDeltaTensorData.resize(tensor.mTensorDataSize);
 
 		return newTensor;
 	}

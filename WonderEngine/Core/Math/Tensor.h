@@ -15,6 +15,7 @@ namespace Aoba::Core::Math
 	class Tensor
 	{
 		friend class TensorVariable;
+
 	public:
 		//可変長コンストラクタ
 		template <typename ...Args>
@@ -46,6 +47,9 @@ namespace Aoba::Core::Math
 			u32* p2mTensorDataSize = const_cast<u32*>(&mTensorDataSize);
 			*p2mTensorDataSize = size;
 		}
+
+		//デフォルトコンストラクタ
+		Tensor();
 		~Tensor() = default;
 
 		//コピーコンストラクタと代入演算子
@@ -56,6 +60,7 @@ namespace Aoba::Core::Math
 		Tensor(Tensor&&);
 		Tensor& operator=(Tensor&&) = default;
 
+		//要素アクセス[index]演算子
 		f32 operator[](u32 index) const;
 		f32& operator[](u32 index);
 
@@ -207,7 +212,7 @@ namespace Aoba::Core::Math
 
 		void transpose(u32 axis0, u32 axis1);
 
-		static Tensor createTensorLike(const Tensor&);
+		static Tensor* createTensorPtrLike(const Tensor&);
 
 
 		static bool isSameShape(const Tensor& tensorL, const Tensor& tensorR);
