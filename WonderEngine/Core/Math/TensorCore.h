@@ -16,7 +16,7 @@ namespace Aoba::Core::Math
 	{
 		friend class Tensor;
 
-	private://後々ここはprivateに変更する。
+	private:
 		//可変長コンストラクタ
 		template <typename ...Args>
 		TensorCore(Args ... args)
@@ -217,7 +217,8 @@ namespace Aoba::Core::Math
 
 		static bool isSameShape(const TensorCore& tensorL, const TensorCore& tensorR);
 
-	private:
+
+		//パラメータを更新するか。
 		bool mWhetherToLearn;
 
 		//現在のテンソルの次元

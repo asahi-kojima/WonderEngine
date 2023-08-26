@@ -7,15 +7,18 @@ namespace Aoba::Core::Math
 
 	class Tensor
 	{
-	public:
+	public://ƒƒ“ƒoŠÖ”
 		template <typename ... Args>
 		Tensor(Args ... args)
 			: mTensorPtr(new TensorCore(args...))
 			, mInstanceID(InstanceID++)
 		{
-
+			if (!(InstancePtrTbl.size() == mInstanceID))
+			{
+				assert(0);
+			}
+			InstancePtrTbl.push_back(this);
 		}
-		Tensor();
 		Tensor(const Tensor&);
 		Tensor(Tensor&&);
 		~Tensor();
@@ -31,30 +34,21 @@ namespace Aoba::Core::Math
 		f32 operator[](u32 index) const { return (*mTensorPtr)[index]; }
 		f32& operator[](u32 index) { return (*mTensorPtr)[index]; }
 
-		inline static bool isSameShape(const Tensor& tensorL, const Tensor& tensorR)
-		{
-			return TensorCore::isSameShape(*tensorL.mTensorPtr, *tensorR.mTensorPtr);
-		}
-
-#if _DEBUG
-		TensorCore* getTensor()
-		{
-			return mTensorPtr;
-		}
-
-		f32& getDeltaTensorData(u32 index)
-		{
-			return mTensorPtr->mDeltaTensorData[index];
-		}
-#endif
+		f32& grad(u32 index) { return mTensorPtr->mDeltaTensorData[index]; }
 
 
-	private:
+
+		static bool isSameShape(const Tensor& tensorL, const Tensor& tensorR);
+		static std::vector<Tensor*> InstancePtrTbl;
+
+	private://ƒƒ“ƒoŠÖ”
+		Tensor();
 		Tensor makeTensorVariableLike(const Tensor&);
 
 
-	private:
+	private://ƒƒ“ƒo•Ï”
 		TensorCore* mTensorPtr;
+
 		const u32 mInstanceID;
 		inline static u32 InstanceID = 0;
 	};

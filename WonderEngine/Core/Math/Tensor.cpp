@@ -9,12 +9,24 @@ namespace Aoba::Core::Math
 		:mInstanceID(InstanceID++)
 	{
 		mTensorPtr = nullptr;
+
+		if (!(InstancePtrTbl.size() == mInstanceID))
+		{
+			assert(0);
+		}
+		InstancePtrTbl.push_back(this);
 	}
 
 	Tensor::Tensor(const Tensor& tensorVariable)
 		:mInstanceID(InstanceID++)
 	{
 		mTensorPtr = new TensorCore(*(tensorVariable.mTensorPtr));
+
+		if (!(InstancePtrTbl.size() == mInstanceID))
+		{
+			assert(0);
+		}
+		InstancePtrTbl.push_back(this);
 	}
 
 	Tensor::Tensor(Tensor&& tensor)
@@ -22,19 +34,27 @@ namespace Aoba::Core::Math
 	{
 		mTensorPtr = tensor.mTensorPtr;
 		tensor.mTensorPtr = nullptr;
+
+		InstancePtrTbl[mInstanceID] = this;
 	}
 
 	Tensor::~Tensor()
 	{
+		//mTensorPtrがnullptrの時はムーブされた時のみで、
+		//その時はムーブ先が残り続けるのでInstancePtrTblは何も触らないようにする。
+		if (mTensorPtr == nullptr)
+		{
+			return;
+		}
+		InstancePtrTbl[mInstanceID] = nullptr;
 		delete mTensorPtr;
 	}
+
 
 
 	/////////////////////////////////////////////////////////////
 	// 引数に与えられたテンソルと同じ形状のテンソルを生成する。
 	/////////////////////////////////////////////////////////////
-
-
 	Tensor Tensor::makeTensorVariableLike(const Tensor& tensorVariable)
 	{
 		Tensor newTensorVariable{};
@@ -42,72 +62,14 @@ namespace Aoba::Core::Math
 		return newTensorVariable;
 	}
 
-
-
 	/////////////////////////////////////////////////////////////
-	//演算子
+	// staticメンバ関数
+	// ２つのテンソルの形状を比較
 	/////////////////////////////////////////////////////////////
-
-	Tensor Tensor::operator+(Tensor& tensorVariableR)
+	bool Tensor::isSameShape(const Tensor& tensorL, const Tensor& tensorR)
 	{
-		if (!isSameShape(*(this), tensorVariableR))
-		{
-			assert(0);
-		}
-
-		//ここは修正すべきかも
-		Tensor newTensorVariable = makeTensorVariableLike(tensorVariableR);
-		//Tensor newTensorVariable = tensorVariableR;
-
-		//順伝搬用の情報の保存
-		newTensorVariable.mTensorPtr->mRootTensor.push_back(this->mTensorPtr);
-		newTensorVariable.mTensorPtr->mRootTensor.push_back(tensorVariableR.mTensorPtr);
-		newTensorVariable.mTensorPtr->mForwardFunction = [](TensorCore& tensor)
-		{
-			const u32 tensorSize = tensor.getTensorDataSize();
-			for (u32 i = 0; i < tensorSize; i++)
-			{
-				tensor[i] = (*tensor.mRootTensor[0])[i] + (*tensor.mRootTensor[1])[i];
-			}
-		};
-
-		newTensorVariable.mTensorPtr->forward();
-
-
-		//逆伝搬用の情報の保存
-		//左辺用
-		{
-			std::vector<TensorCore*> tmpTensorTbl;
-			tmpTensorTbl.push_back(newTensorVariable.mTensorPtr);
-			tmpTensorTbl.push_back(tensorVariableR.mTensorPtr);
-			this->mTensorPtr->mFollowingTensorTbl.push_back(tmpTensorTbl);
-			this->mTensorPtr->mBackwardFunctionTbl.push_back(
-				[](TensorCore& tensor, std::vector<TensorCore*> tensorTbl)
-				{
-					for (u32 i = 0; i < tensor.getTensorDataSize(); i++)
-					{
-						tensor.getDeltaTensorData(i) += (*tensorTbl[0]).getDeltaTensorData(i);
-					}
-				});
-		}
-		//右辺用
-		{
-			std::vector<TensorCore*> tmpTensorTbl;
-			tmpTensorTbl.push_back(newTensorVariable.mTensorPtr);
-			tmpTensorTbl.push_back(this->mTensorPtr);
-			tensorVariableR.mTensorPtr->mFollowingTensorTbl.push_back(tmpTensorTbl);
-			tensorVariableR.mTensorPtr->mBackwardFunctionTbl.push_back(
-				[](TensorCore& tensor, std::vector<TensorCore*> tensorTbl)
-				{
-					for (u32 i = 0; i < tensor.getTensorDataSize(); i++)
-					{
-						tensor.getDeltaTensorData(i) += (*tensorTbl[0]).getDeltaTensorData(i);
-					}
-				});
-		}
-
-		return newTensorVariable;
+		return TensorCore::isSameShape(*tensorL.mTensorPtr, *tensorR.mTensorPtr);
 	}
 
-
+	std::vector<Tensor*> Tensor::InstancePtrTbl = std::vector<Tensor*>();
 }

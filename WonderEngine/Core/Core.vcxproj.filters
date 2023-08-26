@@ -35,5 +35,8 @@
     <ClCompile Include="Math\Tensor.cpp">
       <Filter>ソース ファイル\Math</Filter>
     </ClCompile>
+    <ClCompile Include="Math\TensorOperators.cpp">
+      <Filter>ソース ファイル\Math</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

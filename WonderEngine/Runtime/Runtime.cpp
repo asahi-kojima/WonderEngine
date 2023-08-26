@@ -34,23 +34,20 @@ int main()
 		v1.mTensorPtr->getDeltaTensorData(i)= 2 * i;*/
 
 	}
+	{
+		Tensor vTest(2, 4, 8);
+	}
 
 	Tensor V0 = v0 + v1;
 	Tensor V1 = v2 + v1;
 	for (u32 i = 0; i < v0.getTensorDataSize(); i++)
 	{
-		V0.getDeltaTensorData(i) = i;
-		V1.getDeltaTensorData(i) = 2 * i;
+		V0.grad(i) = i;
+		V1.grad(i) = 2 * i;
 	}
 	v1.backward();
 	v0.backward();
 	v2.backward();
 
 	int x = 1 + 1;
-	//tensor[0];
-	//tensor.transpose(0, 10);
-	//tensor.getTensorSize();
-	//f32 value = tensor(1,0,0,0,0,0);
-	//f32 value = tensor(1, 1, 1, 1, 1, 0);
-	//const Aoba::Core::Math::Tensor tensor0(1, 90, 1);
 }
