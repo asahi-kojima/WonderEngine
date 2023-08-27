@@ -1,12 +1,14 @@
 #pragma once
 
 #include "TensorCore.h"
+#include "TensorGraph.h"
 
 namespace Aoba::Core::Math
 {
 
 	class Tensor
 	{
+		friend class TensorGraph;
 	public://ƒƒ“ƒoŠÖ”
 		template <typename ... Args>
 		Tensor(Args ... args)
@@ -43,11 +45,13 @@ namespace Aoba::Core::Math
 
 	private://ƒƒ“ƒoŠÖ”
 		Tensor();
-		Tensor makeTensorVariableLike(const Tensor&);
+		Tensor makeTensorLike(const Tensor&);
 
 
 	private://ƒƒ“ƒo•Ï”
 		TensorCore* mTensorPtr;
+
+		std::shared_ptr<TensorGraph> mTensorGraph;
 
 		const u32 mInstanceID;
 		inline static u32 InstanceID = 0;

@@ -36,6 +36,14 @@ namespace Aoba::Core::Math
 		tensor.mTensorPtr = nullptr;
 
 		InstancePtrTbl[mInstanceID] = this;
+
+
+		if (tensor.mTensorGraph)
+		{
+			mTensorGraph = tensor.mTensorGraph;
+			tensor.mTensorGraph = nullptr;
+			mTensorGraph->mTensorPtrTbl[mInstanceID] = this;
+		}
 	}
 
 	Tensor::~Tensor()
@@ -55,7 +63,7 @@ namespace Aoba::Core::Math
 	/////////////////////////////////////////////////////////////
 	// 引数に与えられたテンソルと同じ形状のテンソルを生成する。
 	/////////////////////////////////////////////////////////////
-	Tensor Tensor::makeTensorVariableLike(const Tensor& tensorVariable)
+	Tensor Tensor::makeTensorLike(const Tensor& tensorVariable)
 	{
 		Tensor newTensorVariable{};
 		newTensorVariable.mTensorPtr = TensorCore::createTensorPtrLike(*(tensorVariable.mTensorPtr));

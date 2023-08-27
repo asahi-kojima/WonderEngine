@@ -27,6 +27,9 @@
     <ClInclude Include="Math\Tensor.h">
       <Filter>ソース ファイル\Math</Filter>
     </ClInclude>
+    <ClInclude Include="Math\TensorGraph.h">
+      <Filter>ソース ファイル\Math</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Math\TensorCore.cpp">
@@ -36,6 +39,9 @@
       <Filter>ソース ファイル\Math</Filter>
     </ClCompile>
     <ClCompile Include="Math\TensorOperators.cpp">
+      <Filter>ソース ファイル\Math</Filter>
+    </ClCompile>
+    <ClCompile Include="Math\TensorGraph.cpp">
       <Filter>ソース ファイル\Math</Filter>
     </ClCompile>
   </ItemGroup>

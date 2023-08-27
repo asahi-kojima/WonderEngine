@@ -6,21 +6,21 @@
 namespace Aoba::Core::Math
 {
 
-	Tensor Tensor::operator+(Tensor& tensorVariableR)
+	Tensor Tensor::operator+(Tensor& tensorR)
 	{
-		if (!isSameShape(*(this), tensorVariableR))
+		Tensor& tensorL = *this;
+
+		if (!isSameShape(tensorL, tensorR))
 		{
 			assert(0);
 		}
 
-		//ここは修正すべきかも
-		Tensor newTensorVariable = makeTensorVariableLike(tensorVariableR);
-		//Tensor newTensorVariable = tensorVariableR;
+		Tensor newTensor = makeTensorLike(tensorR);
 
 		//順伝搬用の情報の保存
-		newTensorVariable.mTensorPtr->mRootTensor.push_back(this->mTensorPtr);
-		newTensorVariable.mTensorPtr->mRootTensor.push_back(tensorVariableR.mTensorPtr);
-		newTensorVariable.mTensorPtr->mForwardFunction = [](TensorCore& tensor)
+		newTensor.mTensorPtr->mRootTensor.push_back(tensorL.mTensorPtr);
+		newTensor.mTensorPtr->mRootTensor.push_back(tensorR.mTensorPtr);
+		newTensor.mTensorPtr->mForwardFunction = [](TensorCore& tensor)
 		{
 			const u32 tensorSize = tensor.getTensorDataSize();
 			for (u32 i = 0; i < tensorSize; i++)
@@ -29,17 +29,17 @@ namespace Aoba::Core::Math
 			}
 		};
 
-		newTensorVariable.mTensorPtr->forward();
+		newTensor.mTensorPtr->forward();
 
 
 		//逆伝搬用の情報の保存
 		//左辺用
 		{
 			std::vector<TensorCore*> tmpTensorTbl;
-			tmpTensorTbl.push_back(newTensorVariable.mTensorPtr);
-			tmpTensorTbl.push_back(tensorVariableR.mTensorPtr);
-			this->mTensorPtr->mFollowingTensorTbl.push_back(tmpTensorTbl);
-			this->mTensorPtr->mBackwardFunctionTbl.push_back(
+			tmpTensorTbl.push_back(newTensor.mTensorPtr);
+			tmpTensorTbl.push_back(tensorR.mTensorPtr);
+			tensorL.mTensorPtr->mFollowingTensorTbl.push_back(tmpTensorTbl);
+			tensorL.mTensorPtr->mBackwardFunctionTbl.push_back(
 				[](TensorCore& tensor, std::vector<TensorCore*> tensorTbl)
 				{
 					for (u32 i = 0; i < tensor.getTensorDataSize(); i++)
@@ -51,10 +51,10 @@ namespace Aoba::Core::Math
 		//右辺用
 		{
 			std::vector<TensorCore*> tmpTensorTbl;
-			tmpTensorTbl.push_back(newTensorVariable.mTensorPtr);
-			tmpTensorTbl.push_back(this->mTensorPtr);
-			tensorVariableR.mTensorPtr->mFollowingTensorTbl.push_back(tmpTensorTbl);
-			tensorVariableR.mTensorPtr->mBackwardFunctionTbl.push_back(
+			tmpTensorTbl.push_back(newTensor.mTensorPtr);
+			tmpTensorTbl.push_back(tensorL.mTensorPtr);
+			tensorR.mTensorPtr->mFollowingTensorTbl.push_back(tmpTensorTbl);
+			tensorR.mTensorPtr->mBackwardFunctionTbl.push_back(
 				[](TensorCore& tensor, std::vector<TensorCore*> tensorTbl)
 				{
 					for (u32 i = 0; i < tensor.getTensorDataSize(); i++)
@@ -64,7 +64,49 @@ namespace Aoba::Core::Math
 				});
 		}
 
-		return newTensorVariable;
+
+		//グラフの作成
+		bool hasGraphL = (tensorL.mTensorGraph ? true : false);
+		bool hasGraphR = (tensorR.mTensorGraph ? true : false);
+
+		if (hasGraphL && hasGraphR)
+		{
+			//同じグラフに属する
+			if (&tensorL.mTensorGraph == &tensorR.mTensorGraph)
+			{
+				//この時は何もしなくていい。
+			}
+			//別のグラフに属する
+			else
+			{
+				TensorGraph::merge(tensorL.mTensorGraph, tensorR.mTensorGraph);
+			}
+		}
+		else if (hasGraphL && !hasGraphR)
+		{
+			tensorR.mTensorGraph = tensorL.mTensorGraph;
+
+			tensorL.mTensorGraph->mTensorPtrTbl[tensorR.mInstanceID] = &tensorR;
+		}
+		else if (!hasGraphL && hasGraphR)
+		{
+			tensorL.mTensorGraph = tensorR.mTensorGraph;
+
+			tensorR.mTensorGraph->mTensorPtrTbl[tensorL.mInstanceID] = &tensorL;
+		}
+		else
+		{
+			tensorL.mTensorGraph = std::make_shared<TensorGraph>();
+			tensorR.mTensorGraph = tensorL.mTensorGraph;
+
+			tensorL.mTensorGraph->mTensorPtrTbl[tensorL.mInstanceID] = &tensorL;
+			tensorL.mTensorGraph->mTensorPtrTbl[tensorR.mInstanceID] = &tensorR;
+		}
+
+		newTensor.mTensorGraph = tensorL.mTensorGraph;
+		tensorL.mTensorGraph->mTensorPtrTbl[newTensor.mInstanceID] = &newTensor;
+
+		return newTensor;
 	}
 
 

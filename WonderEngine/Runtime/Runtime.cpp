@@ -34,20 +34,40 @@ int main()
 		v1.mTensorPtr->getDeltaTensorData(i)= 2 * i;*/
 
 	}
-	{
-		Tensor vTest(2, 4, 8);
-	}
 
-	Tensor V0 = v0 + v1;
-	Tensor V1 = v2 + v1;
-	for (u32 i = 0; i < v0.getTensorDataSize(); i++)
-	{
-		V0.grad(i) = i;
-		V1.grad(i) = 2 * i;
-	}
-	v1.backward();
-	v0.backward();
-	v2.backward();
+
+	Tensor v3 = v0 + v1;
+	Tensor v4 = v2 + v1;
+
+
+	Tensor v5(2, 4, 8);
+	Tensor v6(2, 4, 8);
+	Tensor v7(2, 4, 8);
+
+	Tensor v8 = v5 + v6;
+	Tensor v9 = v7 + v6;
+
+	Tensor v10 = v0 + v5;
+	//for (u32 i = 0; i < v0.getTensorDataSize(); i++)
+	//{
+	//	V0.grad(i) = i;
+	//	V1.grad(i) = 2 * i;
+	//}
+	//v1.backward();
+	//v0.backward();
+	//v2.backward();
+
+
+	Tensor w0(1, 1);
+	Tensor w1(1, 1);
+	Tensor w2(1, 1);
+
+	Tensor w3 = w0 + w1;
+	Tensor w4 = w1 + w2;
+
+	Tensor w5 = w3 + w4;
 
 	int x = 1 + 1;
+
+
 }
