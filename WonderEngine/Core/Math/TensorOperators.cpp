@@ -66,59 +66,17 @@ namespace Aoba::Core::Math
 
 
 		//グラフの作成
-		bool hasGraphL = (tensorL.mTensorGraph ? true : false);
-		bool hasGraphR = (tensorR.mTensorGraph ? true : false);
-
-		if (hasGraphL && hasGraphR)
-		{
-			//同じグラフに属する
-			if (tensorL.mTensorGraph.get() == tensorR.mTensorGraph.get())
-			{
-				//この時は何もしなくていい。
-			}
-			//別のグラフに属する
-			else
-			{
-				TensorGraph::merge(tensorL.mTensorGraph, tensorR.mTensorGraph);
-			}
-		}
-		else if (hasGraphL && !hasGraphR)
-		{
-			tensorR.mTensorGraph = tensorL.mTensorGraph;
-
-			tensorL.mTensorGraph->mTensorPtrTbl[tensorR.mInstanceID] = &tensorR;
-		}
-		else if (!hasGraphL && hasGraphR)
-		{
-			tensorL.mTensorGraph = tensorR.mTensorGraph;
-
-			tensorR.mTensorGraph->mTensorPtrTbl[tensorL.mInstanceID] = &tensorL;
-		}
-		else
-		{
-			tensorL.mTensorGraph = std::make_shared<TensorGraph>();
-			tensorR.mTensorGraph = tensorL.mTensorGraph;
-
-			tensorL.mTensorGraph->mTensorPtrTbl[tensorL.mInstanceID] = &tensorL;
-			tensorL.mTensorGraph->mTensorPtrTbl[tensorR.mInstanceID] = &tensorR;
-		}
-
-		newTensor.mTensorGraph = tensorL.mTensorGraph;
-		tensorL.mTensorGraph->mTensorPtrTbl[newTensor.mInstanceID] = &newTensor;
+		constructComutationalGraph2(tensorL, tensorR, newTensor);
 
 
-		tensorL.mTensorGraph->insert(tensorL.mInstanceID, newTensor.mInstanceID);
-		tensorR.mTensorGraph->insert(tensorR.mInstanceID, newTensor.mInstanceID);
-
-
-		//毎回ソートする必要はないかも
-		//backward()呼ぶ時に掛ければOK
-		tensorL.mTensorGraph->sortGraph();
+		////毎回ソートする必要はないかも
+		////backward()呼ぶ時に掛ければOK
+		//tensorL.mTensorGraph->sortGraph();
 
 		return newTensor;
 	}
 
-	void Tensor::constructComutationalGraph(Tensor& tensorL, Tensor& tensorR, Tensor& newTensor)
+	void Tensor::constructComutationalGraph2(Tensor& tensorL, Tensor& tensorR, Tensor& newTensor)
 	{
 		bool hasGraphL = (tensorL.mTensorGraph ? true : false);
 		bool hasGraphR = (tensorR.mTensorGraph ? true : false);
@@ -163,5 +121,9 @@ namespace Aoba::Core::Math
 
 		tensorL.mTensorGraph->insert(tensorL.mInstanceID, newTensor.mInstanceID);
 		tensorR.mTensorGraph->insert(tensorR.mInstanceID, newTensor.mInstanceID);
+
+		//毎回ソートする必要はないかも
+		//backward()呼ぶ時に掛ければOK
+		tensorL.mTensorGraph->sortGraph();
 	}
 }

@@ -41,7 +41,7 @@ namespace Aoba::Core::Math
 
 
 		Tensor operator+(Tensor& tensorVariableR);
-		void constructComutationalGraph(Tensor&, Tensor&, Tensor&);
+		void constructComutationalGraph2(Tensor&, Tensor&, Tensor&);
 
 
 
