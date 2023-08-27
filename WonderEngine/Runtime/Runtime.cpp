@@ -58,14 +58,16 @@ int main()
 	//v2.backward();
 
 
-	Tensor w0(1, 1);
-	Tensor w1(1, 1);
-	Tensor w2(1, 1);
+	Tensor w0(2, 4, 8);//11
+	Tensor w1(2, 4, 8);//12
+	Tensor w2(2, 4, 8);//13
 
-	Tensor w3 = w0 + w1;
-	Tensor w4 = w1 + w2;
+	Tensor w3 = w0 + w1;//14
+	Tensor w4 = w1 + w2;//15
 
-	Tensor w5 = w3 + w4;
+	Tensor w5 = w3 + w4;//16
+
+	Tensor vw = v10 + w5;
 
 	int x = 1 + 1;
 

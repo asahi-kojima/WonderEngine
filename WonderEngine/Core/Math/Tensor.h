@@ -25,7 +25,6 @@ namespace Aoba::Core::Math
 		Tensor(Tensor&&);
 		~Tensor();
 
-		Tensor operator+(Tensor& tensorVariableR);
 
 		void forward() { mTensorPtr->forward(); }
 		void backward() { mTensorPtr->backward(); }
@@ -37,6 +36,12 @@ namespace Aoba::Core::Math
 		f32& operator[](u32 index) { return (*mTensorPtr)[index]; }
 
 		f32& grad(u32 index) { return mTensorPtr->mDeltaTensorData[index]; }
+
+
+
+
+		Tensor operator+(Tensor& tensorVariableR);
+		void constructComutationalGraph(Tensor&, Tensor&, Tensor&);
 
 
 
