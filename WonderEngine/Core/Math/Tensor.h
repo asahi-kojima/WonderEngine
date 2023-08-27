@@ -26,8 +26,8 @@ namespace Aoba::Core::Math
 		~Tensor();
 
 
-		void forward() { mTensorPtr->forward(); }
-		void backward() { mTensorPtr->backward(); }
+		void forward();
+		void backward();
 
 
 		u32 getTensorDataSize() const { return mTensorPtr->getTensorDataSize(); }

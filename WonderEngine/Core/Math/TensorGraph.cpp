@@ -53,6 +53,7 @@ namespace Aoba::Core::Math
 		};
 
 		mSortedList.clear();
+		mSortedBackwardList.clear();
 
 		for (auto tensorPtr : mTensorPtrTbl)
 		{
@@ -61,7 +62,13 @@ namespace Aoba::Core::Math
 			rec(rec, mGraph, tensorPtr.first, seen, mSortedList);
 		}
 
+
 		std::reverse(mSortedList.begin(), mSortedList.end());
+		for (u32 i = 0; i < mSortedList.size(); i++)
+		{
+			mSortedBackwardList.push_back(mSortedList[mSortedList.size() - i - 1]);
+		}
+
 	}
 
 }

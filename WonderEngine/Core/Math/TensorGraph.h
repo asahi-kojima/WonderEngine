@@ -18,6 +18,7 @@ namespace Aoba::Core::Math
 		Graph mGraph;
 		void insert(u32 origin, u32 target) { mGraph[origin].push_back(target); }
 		std::vector<u32> mSortedList;
+		std::vector<u32> mSortedBackwardList;
 
 		std::map<u32, Tensor*> mTensorPtrTbl;
 

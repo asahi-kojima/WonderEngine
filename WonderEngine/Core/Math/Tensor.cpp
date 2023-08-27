@@ -58,6 +58,43 @@ namespace Aoba::Core::Math
 		delete mTensorPtr;
 	}
 
+	void Tensor::forward()
+	{
+		const auto& sortedList = mTensorGraph->mSortedList;
+		const u32 index = mInstanceID;
+
+		auto iter = std::find(sortedList.begin(), sortedList.end(), index);
+		if (iter == sortedList.end())
+		{
+			assert(0);
+		}
+
+		for (; iter != sortedList.end(); iter++)
+		{
+			const u32 index = (*iter);
+			mTensorGraph->mTensorPtrTbl[index]->mTensorPtr->forward();
+
+		}
+	}
+
+	void Tensor::backward()
+	{
+		const auto& sortedList = mTensorGraph->mSortedBackwardList;
+		const u32 index = mInstanceID;
+
+		auto iter = std::find(sortedList.begin(), sortedList.end(), index);
+		if (iter == sortedList.end())
+		{
+			assert(0);
+		}
+
+		for (; iter != sortedList.end(); iter++)
+		{
+			const u32 index = (*iter);
+			mTensorGraph->mTensorPtrTbl[index]->mTensorPtr->backward();
+
+		}
+	}
 
 
 	/////////////////////////////////////////////////////////////

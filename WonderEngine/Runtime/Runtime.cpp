@@ -68,7 +68,7 @@ int main()
 	Tensor w5 = w3 + w4;//16
 
 	Tensor vw = v10 + w5;
-
+	vw.backward();
 	int x = 1 + 1;
 
 
