@@ -39,8 +39,8 @@ namespace Aoba::Core::Math
 
 
 
-		void defineBinaryOperator(Tensor&, Tensor&, Tensor&, 
-			std::function<void(TensorCore&)>&, std::function<void(TensorCore&, std::vector<TensorCore*>)>&);
+		Tensor defineBinaryOperator(Tensor&, Tensor&,
+			const std::function<void(TensorCore&)>&, const std::function<void(TensorCore&, std::vector<TensorCore*>)>&);
 		Tensor operator+(Tensor& tensorVariableR);
 		Tensor operator*(Tensor& tensorVariableR);
 		Tensor operator-(Tensor& tensorVariableR);
