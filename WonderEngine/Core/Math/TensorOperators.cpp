@@ -5,6 +5,42 @@
 /////////////////////////////////////////////////////////////
 namespace Aoba::Core::Math
 {
+	void Tensor::defineBinaryOperator(Tensor& tensorL, Tensor& tensorR, Tensor& targetTensor, 
+		std::function<void(TensorCore&)>& forwardRule, std::function<void(TensorCore&, std::vector<TensorCore*>)>& backwardRule)
+	{
+		if (!isSameShape(tensorL, tensorR))
+		{
+			assert(0);
+		}
+
+		//順伝搬用の情報の保存
+		targetTensor.mTensorPtr->mRootTensor.push_back(tensorL.mTensorPtr);
+		targetTensor.mTensorPtr->mRootTensor.push_back(tensorR.mTensorPtr);
+		targetTensor.mTensorPtr->mForwardFunction = forwardRule;
+
+		targetTensor.mTensorPtr->forward();
+
+		//逆伝搬用の情報の保存
+		//左辺用
+		{
+			std::vector<TensorCore*> tmpTensorTbl;
+			tmpTensorTbl.push_back(targetTensor.mTensorPtr);
+			tensorL.mTensorPtr->mFollowingTensorTbl.push_back(std::move(tmpTensorTbl));
+			tensorL.mTensorPtr->mBackwardFunctionTbl.push_back(backwardRule);
+		}
+		//右辺用
+		{
+			std::vector<TensorCore*> tmpTensorTbl;
+			tmpTensorTbl.push_back(targetTensor.mTensorPtr);
+			tensorR.mTensorPtr->mFollowingTensorTbl.push_back(std::move(tmpTensorTbl));
+			tensorR.mTensorPtr->mBackwardFunctionTbl.push_back(backwardRule);
+		}
+
+
+		//グラフの作成
+		constructComutationalGraph2(tensorL, tensorR, targetTensor);
+	}
+
 
 	Tensor Tensor::operator+(Tensor& tensorR)
 	{
@@ -33,35 +69,28 @@ namespace Aoba::Core::Math
 
 
 		//逆伝搬用の情報の保存
+		
+		auto backwardRule = [](TensorCore& tensor, std::vector<TensorCore*> tensorTbl)
+		{
+			for (u32 i = 0; i < tensor.getTensorDataSize(); i++)
+			{
+				tensor.getDeltaTensorData(i) += (*tensorTbl[0]).getDeltaTensorData(i);
+			}
+		};
+
 		//左辺用
 		{
 			std::vector<TensorCore*> tmpTensorTbl;
 			tmpTensorTbl.push_back(newTensor.mTensorPtr);
-			tmpTensorTbl.push_back(tensorR.mTensorPtr);
-			tensorL.mTensorPtr->mFollowingTensorTbl.push_back(tmpTensorTbl);
-			tensorL.mTensorPtr->mBackwardFunctionTbl.push_back(
-				[](TensorCore& tensor, std::vector<TensorCore*> tensorTbl)
-				{
-					for (u32 i = 0; i < tensor.getTensorDataSize(); i++)
-					{
-						tensor.getDeltaTensorData(i) += (*tensorTbl[0]).getDeltaTensorData(i);
-					}
-				});
+			tensorL.mTensorPtr->mFollowingTensorTbl.push_back(std::move(tmpTensorTbl));
+			tensorL.mTensorPtr->mBackwardFunctionTbl.push_back(backwardRule);
 		}
 		//右辺用
 		{
 			std::vector<TensorCore*> tmpTensorTbl;
 			tmpTensorTbl.push_back(newTensor.mTensorPtr);
-			tmpTensorTbl.push_back(tensorL.mTensorPtr);
-			tensorR.mTensorPtr->mFollowingTensorTbl.push_back(tmpTensorTbl);
-			tensorR.mTensorPtr->mBackwardFunctionTbl.push_back(
-				[](TensorCore& tensor, std::vector<TensorCore*> tensorTbl)
-				{
-					for (u32 i = 0; i < tensor.getTensorDataSize(); i++)
-					{
-						tensor.getDeltaTensorData(i) += (*tensorTbl[0]).getDeltaTensorData(i);
-					}
-				});
+			tensorR.mTensorPtr->mFollowingTensorTbl.push_back(std::move(tmpTensorTbl));
+			tensorR.mTensorPtr->mBackwardFunctionTbl.push_back(backwardRule);
 		}
 
 
@@ -75,6 +104,73 @@ namespace Aoba::Core::Math
 
 		return newTensor;
 	}
+
+
+	Tensor Tensor::operator*(Tensor& tensorR)
+	{
+		Tensor& tensorL = *this;
+
+		if (!isSameShape(tensorL, tensorR))
+		{
+			assert(0);
+		}
+
+		Tensor newTensor = makeTensorLike(tensorR);
+
+		//順伝搬用の情報の保存
+		newTensor.mTensorPtr->mRootTensor.push_back(tensorL.mTensorPtr);
+		newTensor.mTensorPtr->mRootTensor.push_back(tensorR.mTensorPtr);
+		newTensor.mTensorPtr->mForwardFunction = [](TensorCore& tensor)
+		{
+			const u32 tensorSize = tensor.getTensorDataSize();
+			for (u32 i = 0; i < tensorSize; i++)
+			{
+				tensor[i] = (*tensor.mRootTensor[0])[i] * (*tensor.mRootTensor[1])[i];
+			}
+		};
+
+		newTensor.mTensorPtr->forward();
+
+
+		//逆伝搬用の情報の保存
+		 
+		auto backwardRule = [](TensorCore& tensor, std::vector<TensorCore*> tensorTbl)
+		{
+			for (u32 i = 0; i < tensor.getTensorDataSize(); i++)
+			{
+				tensor.getDeltaTensorData(i) += (*tensorTbl[0]).getDeltaTensorData(i) * (*tensorTbl[1])[i];
+			}
+		};
+		
+		//左辺用
+		{
+			std::vector<TensorCore*> tmpTensorTbl;
+			tmpTensorTbl.push_back(newTensor.mTensorPtr);
+			tmpTensorTbl.push_back(tensorR.mTensorPtr);
+			tensorL.mTensorPtr->mFollowingTensorTbl.push_back(std::move(tmpTensorTbl));
+			tensorL.mTensorPtr->mBackwardFunctionTbl.push_back(backwardRule);
+		}
+		//右辺用
+		{
+			std::vector<TensorCore*> tmpTensorTbl;
+			tmpTensorTbl.push_back(newTensor.mTensorPtr);
+			tmpTensorTbl.push_back(tensorL.mTensorPtr);
+			tensorR.mTensorPtr->mFollowingTensorTbl.push_back(std::move(tmpTensorTbl));
+			tensorR.mTensorPtr->mBackwardFunctionTbl.push_back(backwardRule);
+		}
+
+
+		//グラフの作成
+		constructComutationalGraph2(tensorL, tensorR, newTensor);
+
+
+		////毎回ソートする必要はないかも
+		////backward()呼ぶ時に掛ければOK
+		//tensorL.mTensorGraph->sortGraph();
+
+		return newTensor;
+	}
+
 
 	void Tensor::constructComutationalGraph2(Tensor& tensorL, Tensor& tensorR, Tensor& newTensor)
 	{

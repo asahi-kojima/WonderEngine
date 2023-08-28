@@ -21,9 +21,9 @@ int main()
 	//Tensor newTensor = tensor0 + tensor1;
 	//Tensor newTensor1 = newTensor + tensor0;
 
-	Tensor v0(2,4,8);
-	Tensor v1(2,4,8);
-	Tensor v2(2,4,8);
+	Tensor v0(100, 3, 28, 28);
+	Tensor v1(100, 3, 28, 28);
+	Tensor v2(100, 3, 28, 28);
 	for (u32 i = 0; i < v0.getTensorDataSize(); i++)
 	{
 		v0[i] = i;
@@ -40,14 +40,14 @@ int main()
 	Tensor v4 = v2 + v1;
 
 
-	Tensor v5(2, 4, 8);
-	Tensor v6(2, 4, 8);
-	Tensor v7(2, 4, 8);
+	Tensor v5(100, 3, 28, 28);
+	Tensor v6(100, 3, 28, 28);
+	Tensor v7(100, 3, 28, 28);
 
 	Tensor v8 = v5 + v6;
 	Tensor v9 = v7 + v6;
 
-	Tensor v10 = v0 + v5;
+	Tensor v10 = v3 + v5;
 	//for (u32 i = 0; i < v0.getTensorDataSize(); i++)
 	//{
 	//	V0.grad(i) = i;
@@ -58,16 +58,27 @@ int main()
 	//v2.backward();
 
 
-	Tensor w0(2, 4, 8);//11
-	Tensor w1(2, 4, 8);//12
-	Tensor w2(2, 4, 8);//13
+	Tensor w0(100, 3, 28, 28);//11
+	Tensor w1(100, 3, 28, 28);//12
+	Tensor w2(100, 3, 28, 28);//13
 
-	Tensor w3 = w0 + w1;//14
-	Tensor w4 = w1 + w2;//15
+	for (u32 i = 0; i < w0.getTensorDataSize(); i++)
+	{
+		w0[i] = i % 3 + 1;
+		w1[i] = i % 2 + 1;
+		w2[i] = 2;
+	}
 
-	Tensor w5 = w3 + w4;//16
+	Tensor w3 = w0 * w1;//14
+	Tensor w4 = w1 * w2;//15
+
+	Tensor w5 = w3 * w4;//16
 
 	Tensor vw = v10 + w5;
+	for (u32 i = 0; i < vw.getTensorDataSize(); i++)
+	{
+		vw.grad(i) = i;
+	}
 	vw.backward();
 	int x = 1 + 1;
 
