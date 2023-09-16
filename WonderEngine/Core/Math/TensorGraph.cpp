@@ -22,7 +22,7 @@ namespace Aoba::Core::Math
 		{
 			graphL->mTensorPtrTbl[iter->first] = iter->second;
 
-			iter->second->mTensorGraph = graphL;
+			iter->second->mTensorGraphPtr->mTensorGraph = graphL;
 		}
 	}
 

@@ -20,7 +20,7 @@ namespace Aoba::Core::Math
 		std::vector<u32> mSortedList;
 		std::vector<u32> mSortedBackwardList;
 
-		std::map<u32, Tensor*> mTensorPtrTbl;
+		std::map<u32, const Tensor*> mTensorPtrTbl;
 
 		void sortGraph();
 

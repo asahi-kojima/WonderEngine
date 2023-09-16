@@ -14,6 +14,7 @@ namespace Aoba::Core::Math
 		Tensor(Args ... args)
 			: mTensorPtr(new TensorCore(args...))
 			, mInstanceID(InstanceID++)
+			, mTensorGraphPtr(std::make_unique<TensorGraphWrapper>())
 		{
 			if (!(InstancePtrTbl.size() == mInstanceID))
 			{
@@ -59,7 +60,13 @@ namespace Aoba::Core::Math
 	private://ÉÅÉìÉoïœêî
 		TensorCore* mTensorPtr;
 
-		std::shared_ptr<TensorGraph> mTensorGraph;
+		class TensorGraphWrapper
+		{
+		public:
+			TensorGraphWrapper() : mTensorGraph(nullptr) {}
+			std::shared_ptr<TensorGraph> mTensorGraph;
+		};
+		std::unique_ptr<TensorGraphWrapper> mTensorGraphPtr;
 
 		const u32 mInstanceID;
 		inline static u32 InstanceID = 0;

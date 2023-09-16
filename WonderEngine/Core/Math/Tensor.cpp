@@ -7,6 +7,7 @@ namespace Aoba::Core::Math
 	/////////////////////////////////////////////////////////////
 	Tensor::Tensor()
 		:mInstanceID(InstanceID++)
+		, mTensorGraphPtr(std::make_unique<TensorGraphWrapper>())
 	{
 		mTensorPtr = nullptr;
 
@@ -17,10 +18,12 @@ namespace Aoba::Core::Math
 		InstancePtrTbl.push_back(this);
 	}
 
-	Tensor::Tensor(const Tensor& tensorVariable)
+	Tensor::Tensor(const Tensor& tensor)
 		:mInstanceID(InstanceID++)
+		, mTensorGraphPtr(std::make_unique<TensorGraphWrapper>())
 	{
-		mTensorPtr = new TensorCore(*(tensorVariable.mTensorPtr));
+		mTensorPtr = new TensorCore(*(tensor.mTensorPtr));
+		mTensorGraphPtr->mTensorGraph = tensor.mTensorGraphPtr->mTensorGraph;
 
 		if (!(InstancePtrTbl.size() == mInstanceID))
 		{
@@ -31,18 +34,22 @@ namespace Aoba::Core::Math
 
 	Tensor::Tensor(Tensor&& tensor)
 		:mInstanceID(tensor.mInstanceID)
+		, mTensorGraphPtr(std::make_unique<TensorGraphWrapper>())
 	{
 		mTensorPtr = tensor.mTensorPtr;
 		tensor.mTensorPtr = nullptr;
 
+		mTensorGraphPtr->mTensorGraph = tensor.mTensorGraphPtr->mTensorGraph;
+		tensor.mTensorGraphPtr->mTensorGraph = nullptr;
+
 		InstancePtrTbl[mInstanceID] = this;
 
 
-		if (tensor.mTensorGraph)
+		if (tensor.mTensorGraphPtr->mTensorGraph)
 		{
-			mTensorGraph = tensor.mTensorGraph;
-			tensor.mTensorGraph = nullptr;
-			mTensorGraph->mTensorPtrTbl[mInstanceID] = this;
+			mTensorGraphPtr->mTensorGraph = tensor.mTensorGraphPtr->mTensorGraph;
+			tensor.mTensorGraphPtr->mTensorGraph = nullptr;
+			mTensorGraphPtr->mTensorGraph->mTensorPtrTbl[mInstanceID] = this;
 		}
 	}
 
@@ -60,7 +67,7 @@ namespace Aoba::Core::Math
 
 	void Tensor::forward()
 	{
-		const auto& sortedList = mTensorGraph->mSortedList;
+		const auto& sortedList = mTensorGraphPtr->mTensorGraph->mSortedList;
 		const u32 index = mInstanceID;
 
 		auto iter = std::find(sortedList.begin(), sortedList.end(), index);
@@ -72,14 +79,14 @@ namespace Aoba::Core::Math
 		for (; iter != sortedList.end(); iter++)
 		{
 			const u32 index = (*iter);
-			mTensorGraph->mTensorPtrTbl[index]->mTensorPtr->forward();
+			mTensorGraphPtr->mTensorGraph->mTensorPtrTbl[index]->mTensorPtr->forward();
 
 		}
 	}
 
 	void Tensor::backward()
 	{
-		const auto& sortedList = mTensorGraph->mSortedBackwardList;
+		const auto& sortedList = mTensorGraphPtr->mTensorGraph->mSortedBackwardList;
 		const u32 index = mInstanceID;
 
 		auto iter = std::find(sortedList.begin(), sortedList.end(), index);
@@ -91,7 +98,7 @@ namespace Aoba::Core::Math
 		for (; iter != sortedList.end(); iter++)
 		{
 			const u32 index = (*iter);
-			mTensorGraph->mTensorPtrTbl[index]->mTensorPtr->backward();
+			mTensorGraphPtr->mTensorGraph->mTensorPtrTbl[index]->mTensorPtr->backward();
 
 		}
 	}

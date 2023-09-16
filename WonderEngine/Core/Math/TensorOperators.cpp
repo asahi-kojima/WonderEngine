@@ -102,52 +102,52 @@ namespace Aoba::Core::Math
 
 	void Tensor::constructCalculationGraph2(const Tensor& tensorL, const Tensor& tensorR, const Tensor& newTensor)
 	{
-		//bool hasGraphL = (tensorL.mTensorGraph ? true : false);
-		//bool hasGraphR = (tensorR.mTensorGraph ? true : false);
+		bool hasGraphL = (tensorL.mTensorGraphPtr->mTensorGraph ? true : false);
+		bool hasGraphR = (tensorR.mTensorGraphPtr->mTensorGraph ? true : false);
 
-		//if (hasGraphL && hasGraphR)
-		//{
-		//	//同じグラフに属する
-		//	if (tensorL.mTensorGraph.get() == tensorR.mTensorGraph.get())
-		//	{
-		//		//この時は何もしなくていい。
-		//	}
-		//	//別のグラフに属する
-		//	else
-		//	{
-		//		TensorGraph::merge(tensorL.mTensorGraph, tensorR.mTensorGraph);
-		//	}
-		//}
-		//else if (hasGraphL && !hasGraphR)
-		//{
-		//	tensorR.mTensorGraph = tensorL.mTensorGraph;
+		if (hasGraphL && hasGraphR)
+		{
+			//同じグラフに属する
+			if (tensorL.mTensorGraphPtr->mTensorGraph.get() == tensorR.mTensorGraphPtr->mTensorGraph.get())
+			{
+				//この時は何もしなくていい。
+			}
+			//別のグラフに属する
+			else
+			{
+				TensorGraph::merge(tensorL.mTensorGraphPtr->mTensorGraph, tensorR.mTensorGraphPtr->mTensorGraph);
+			}
+		}
+		else if (hasGraphL && !hasGraphR)
+		{
+			tensorR.mTensorGraphPtr->mTensorGraph = tensorL.mTensorGraphPtr->mTensorGraph;
 
-		//	tensorL.mTensorGraph->mTensorPtrTbl[tensorR.mInstanceID] = &tensorR;
-		//}
-		//else if (!hasGraphL && hasGraphR)
-		//{
-		//	tensorL.mTensorGraph = tensorR.mTensorGraph;
+			tensorL.mTensorGraphPtr->mTensorGraph->mTensorPtrTbl[tensorR.mInstanceID] = &tensorR;
+		}
+		else if (!hasGraphL && hasGraphR)
+		{
+			tensorL.mTensorGraphPtr->mTensorGraph = tensorR.mTensorGraphPtr->mTensorGraph;
 
-		//	tensorR.mTensorGraph->mTensorPtrTbl[tensorL.mInstanceID] = &tensorL;
-		//}
-		//else
-		//{
-		//	tensorL.mTensorGraph = std::make_shared<TensorGraph>();
-		//	tensorR.mTensorGraph = tensorL.mTensorGraph;
+			tensorR.mTensorGraphPtr->mTensorGraph->mTensorPtrTbl[tensorL.mInstanceID] = &tensorL;
+		}
+		else
+		{
+			tensorL.mTensorGraphPtr->mTensorGraph = std::make_shared<TensorGraph>();
+			tensorR.mTensorGraphPtr->mTensorGraph = tensorL.mTensorGraphPtr->mTensorGraph;
 
-		//	tensorL.mTensorGraph->mTensorPtrTbl[tensorL.mInstanceID] = &tensorL;
-		//	tensorL.mTensorGraph->mTensorPtrTbl[tensorR.mInstanceID] = &tensorR;
-		//}
+			tensorL.mTensorGraphPtr->mTensorGraph->mTensorPtrTbl[tensorL.mInstanceID] = &tensorL;
+			tensorL.mTensorGraphPtr->mTensorGraph->mTensorPtrTbl[tensorR.mInstanceID] = &tensorR;
+		}
 
-		//newTensor.mTensorGraph = tensorL.mTensorGraph;
-		//tensorL.mTensorGraph->mTensorPtrTbl[newTensor.mInstanceID] = &newTensor;
+		newTensor.mTensorGraphPtr->mTensorGraph = tensorL.mTensorGraphPtr->mTensorGraph;
+		tensorL.mTensorGraphPtr->mTensorGraph->mTensorPtrTbl[newTensor.mInstanceID] = &newTensor;
 
 
-		//tensorL.mTensorGraph->insert(tensorL.mInstanceID, newTensor.mInstanceID);
-		//tensorR.mTensorGraph->insert(tensorR.mInstanceID, newTensor.mInstanceID);
+		tensorL.mTensorGraphPtr->mTensorGraph->insert(tensorL.mInstanceID, newTensor.mInstanceID);
+		tensorR.mTensorGraphPtr->mTensorGraph->insert(tensorR.mInstanceID, newTensor.mInstanceID);
 
-		////毎回ソートする必要はないかも
-		////backward()呼ぶ時に掛ければOK
-		//tensorL.mTensorGraph->sortGraph();
+		//毎回ソートする必要はないかも
+		//backward()呼ぶ時に掛ければOK
+		tensorL.mTensorGraphPtr->mTensorGraph->sortGraph();
 	}
 }
