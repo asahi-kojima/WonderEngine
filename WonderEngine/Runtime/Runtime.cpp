@@ -8,7 +8,7 @@ int main()
 	// 
 	// 
 	// 
-	
+
 	using namespace Aoba::Core::Math;
 	//Tensor tensor0(2,4,8);
 	//Tensor tensor1(2,4,8);
@@ -69,18 +69,44 @@ int main()
 		w2[i] = 2;
 	}
 
-	Tensor w3 = w0 * w1;//14
-	Tensor w4 = w1 * w2;//15
+	//Tensor w3 = w0 * w1;//14
+	//Tensor w4 = w1 * w2;//15
 
-	Tensor w5 = w3 * w4;//16
+	//Tensor w5 = w3 * w4;//16
 
-	Tensor vw = v10 + w5;
-	for (u32 i = 0; i < vw.getTensorDataSize(); i++)
+	//Tensor vw = v10 + w5;
+	//for (u32 i = 0; i < vw.getTensorDataSize(); i++)
+	//{
+	//	vw.grad(i) = i;
+	//}
+	//vw.backward();
+	//int x = 1 + 1;
+
+
+
+
+	//パターン
+	//{
+	//	Tensor t0{1};
+	//	Tensor t1{1};
+	//	Tensor t2 = t0 + t1;
+	//}
+
 	{
-		vw.grad(i) = i;
+		Tensor t0{ 1 };
+		Tensor t2 = t0 + Tensor{ 1 };
 	}
-	vw.backward();
-	int x = 1 + 1;
 
+	{
+		Tensor t1{ 1 };
+		Tensor t2 = Tensor{1} + t1;
+	}
 
+	//{
+	//	Tensor t2 = Tensor{ 1 } + Tensor{ 1 };
+	//}
+
+	//{
+	//	Tensor t2 = Tensor{ 1 } + Tensor{ 1 } + Tensor{ 1 };
+	//}
 }

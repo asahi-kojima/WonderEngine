@@ -39,12 +39,12 @@ namespace Aoba::Core::Math
 
 
 
-		Tensor defineBinaryOperator(Tensor&, Tensor&,
+		Tensor defineBinaryOperator(const Tensor&, const Tensor&,
 			const std::function<void(TensorCore&)>&, const std::function<void(TensorCore&, std::vector<TensorCore*>)>&);
-		Tensor operator+(Tensor& tensorVariableR);
-		Tensor operator*(Tensor& tensorVariableR);
-		Tensor operator-(Tensor& tensorVariableR);
-		void constructComutationalGraph2(Tensor&, Tensor&, Tensor&);
+		Tensor operator+(const Tensor& tensorVariableR);
+		//Tensor operator*(Tensor& tensorVariableR);
+		//Tensor operator-(Tensor& tensorVariableR);
+		void constructCalculationGraph2(const Tensor&, const Tensor&, const Tensor&);
 
 
 
